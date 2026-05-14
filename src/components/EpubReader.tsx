@@ -23,7 +23,7 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<Rendition | null>(null);
   const bookRef = useRef<any>(null);
-  const { settings, annotations, addAnnotation, updateAnnotation } = useReader();
+  const { settings, annotations, addAnnotation, updateAnnotation, updateSettings } = useReader();
   const [loadingState, setLoadingState] = useState<'loading' | 'success' | 'error'>('loading');
   const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | null>(null);
   const [commentText, setCommentText] = useState("");

@@ -193,7 +193,7 @@ export function PdfReader({ id, url, onRemove }: PdfReaderProps) {
         </div>
       </div>
 
-      <div ref={viewportRef} className="reader-viewport" style={{ padding: '2rem 0', height: '100%', overflowY: 'auto' }}>
+      <div ref={viewportRef} onScroll={onScroll} className="reader-viewport" style={{ padding: '2rem 0', height: '100%', overflowY: 'auto' }}>
         <div className="pdf-scroll-container" style={{ 
           display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: '2rem',
           maxWidth: settings.viewMode === 'double' ? `${scale * 1200}px` : '100%', margin: '0 auto'
