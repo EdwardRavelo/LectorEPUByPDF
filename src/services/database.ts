@@ -19,7 +19,7 @@ export interface BookSettings {
   bookId: string;
   fontSize: number;
   fontFamily: string;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'sepia';
   viewMode: 'single' | 'double';
   location?: string | number; // CFI for ePub, Page number for PDF
 }

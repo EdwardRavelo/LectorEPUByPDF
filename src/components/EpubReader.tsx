@@ -120,14 +120,26 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const applyAllStyles = (rendition: Rendition, size: number, family: string, mode: 'light' | 'dark') => {
+  const applyAllStyles = (rendition: Rendition, size: number, family: string, mode: 'light' | 'dark' | 'sepia') => {
     if (!rendition) return;
+    
+    let bgColor = '#ffffff';
+    let textColor = '#000000';
+    
+    if (mode === 'dark') {
+      bgColor = '#1a1b23';
+      textColor = '#eeeeee';
+    } else if (mode === 'sepia') {
+      bgColor = '#fcf5e5';
+      textColor = '#5b4636';
+    }
+
     rendition.themes.default({
       body: {
         'font-family': `${family} !important`,
         'font-size': `${size}% !important`,
-        'color': mode === 'dark' ? '#eeeeee !important' : '#000000 !important',
-        'background-color': mode === 'dark' ? '#1a1b23 !important' : '#ffffff !important',
+        'color': `${textColor} !important`,
+        'background-color': `${bgColor} !important`,
         'padding': '0 60px !important',
         'line-height': '1.6 !important'
       }

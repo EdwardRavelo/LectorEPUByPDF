@@ -4,6 +4,47 @@
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   --accent-gradient: linear-gradient(135deg, #aa3bff 0%, #7e22ce 100%);
   --sidebar-width: 280px;
+  --accent: #aa3bff;
+}
+
+/* Sepia Theme */
+.sepia {
+  --bg: #f4ecd8;
+  --text: #5b4636;
+  --glass-bg: rgba(244, 236, 216, 0.85);
+  --glass-border: rgba(91, 70, 54, 0.2);
+  --code-bg: #e8dfc4;
+}
+
+.main-view.sepia {
+  background: var(--bg) !important;
+}
+
+.main-view.sepia .glass-panel {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  color: var(--text);
+}
+
+.main-view.sepia .epub-container,
+.main-view.sepia .pdf-page-wrapper {
+  background-color: #fcf5e5 !important;
+  box-shadow: 0 10px 30px rgba(91, 70, 54, 0.1) !important;
+}
+
+.main-view.sepia .floating-toolbar,
+.main-view.sepia .tools-panel .tool-group {
+  background: #f4ecd8 !important;
+  color: #5b4636 !important;
+}
+
+.main-view.sepia button.floating-btn {
+  background: #eee4cc;
+  color: #5b4636;
+}
+
+.main-view.sepia button.floating-btn:hover {
+  background: #e8dfc4;
 }
 
 @media (prefers-color-scheme: dark) {

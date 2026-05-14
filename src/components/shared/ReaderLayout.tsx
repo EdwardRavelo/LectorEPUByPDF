@@ -35,18 +35,31 @@ export function ReaderLayout({
     else document.exitFullscreen();
   };
 
+  const getThemeIcon = () => {
+    if (settings.theme === 'light') return <Sun size={20} />;
+    if (settings.theme === 'sepia') return <Moon size={20} style={{ color: '#d4a373' }} />;
+    return <Moon size={20} />;
+  };
+
+  const cycleTheme = () => {
+    const themes: ('light' | 'sepia' | 'dark')[] = ['light', 'sepia', 'dark'];
+    const currentIndex = themes.indexOf(settings.theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    updateSettings({ theme: themes[nextIndex] });
+  };
+
   return (
     <div 
       ref={containerRef} 
       className={`main-view ${isFullscreen ? 'fullscreen' : ''} ${settings.theme}`}
-      style={{ background: settings.theme === 'dark' ? '#121212' : '#f4f4f7' }}
+      style={{ background: settings.theme === 'dark' ? '#121212' : settings.theme === 'sepia' ? '#f4ecd8' : '#f4f4f7' }}
     >
       {/* Global Toolbar/Options Panel */}
       <div className="tools-panel">
         <div className="tool-group glass-panel" style={{ background: 'white', padding: '12px', gap: '12px' }}>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="floating-btn" onClick={() => updateSettings({ theme: settings.theme === 'light' ? 'dark' : 'light' })}>
-              {settings.theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            <button className="floating-btn" onClick={cycleTheme} title="Cambiar tema (Claro / Sepia / Oscuro)">
+              {getThemeIcon()}
             </button>
             <button className="floating-btn" onClick={() => setShowOptions(!showOptions)}>
               <Type size={20} />
