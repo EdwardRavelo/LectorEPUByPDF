@@ -87,6 +87,13 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
           applyAnnotations(rendition);
         }
 
+        // Asegurar que los estilos se apliquen en cada renderizado de página
+        rendition.on('rendered', () => {
+          if (renditionRef.current) {
+            applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, settings.theme);
+          }
+        });
+
         // Guardar progreso al cambiar de ubicación
         rendition.on('relocated', (location: any) => {
           updateSettings({ location: location.start.cfi });

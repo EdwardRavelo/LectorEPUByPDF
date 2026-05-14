@@ -62,12 +62,15 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     loadData();
   }, [activeBookId]);
 
-  const updateSettings = useCallback(async (newSettings: Partial<BookSettings>) => {
+  const updateSettings = useCallback((newSettings: Partial<BookSettings>) => {
     if (!activeBookId) return;
-    const updated = { ...settings, ...newSettings, bookId: activeBookId };
-    setSettings(updated);
-    await dbService.saveSettings(updated);
-  }, [activeBookId, settings]);
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings, bookId: activeBookId };
+      // Persistir en segundo plano
+      dbService.saveSettings(updated);
+      return updated;
+    });
+  }, [activeBookId]);
 
   const addAnnotation = useCallback(async (anno: Omit<Annotation, 'timestamp' | 'id'>) => {
     if (!activeBookId) return;
