@@ -22,7 +22,7 @@ const HIGHLIGHT_COLORS = [
 ];
 
 export function PdfReader({ id, url, onRemove }: PdfReaderProps) {
-  const { settings, annotations, addAnnotation, updateAnnotation, deleteAnnotation } = useReader();
+  const { settings, updateSettings, annotations, addAnnotation, updateAnnotation, deleteAnnotation } = useReader();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [activeColor, setActiveColor] = useState(HIGHLIGHT_COLORS[0]);
   const [mode, setMode] = useState<'select' | 'draw'>('select');
@@ -32,8 +32,49 @@ export function PdfReader({ id, url, onRemove }: PdfReaderProps) {
 
   const scale = (settings.fontSize / 100) * 1.5;
 
+  // Restaurar progreso de lectura
+  useEffect(() => {
+    if (viewportRef.current && typeof settings.location === 'number' && numPages) {
+      const pageToScroll = settings.location;
+      setTimeout(() => {
+        const pageEl = viewportRef.current?.querySelector(`[data-page-number="${pageToScroll}"]`);
+        if (pageEl) {
+          pageEl.scrollIntoView();
+        }
+      }, 500);
+    }
+  }, [numPages]); // Solo al cargar el documento
+
+  const onScroll = useCallback(() => {
+    if (!viewportRef.current) return;
+    const scrollPos = viewportRef.current.scrollTop + 150;
+    const pages = viewportRef.current.querySelectorAll('.pdf-page-wrapper');
+    let currentPage = 1;
+
+    pages.forEach((page: any) => {
+      if (page.offsetTop <= scrollPos) {
+        currentPage = parseInt(page.getAttribute('data-page-number') || '1');
+      }
+    });
+
+    if (settings.location !== currentPage) {
+      updateSettings({ location: currentPage });
+    }
+  }, [settings.location, updateSettings]);
+
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    
+    // Restaurar progreso de lectura al cargar el documento
+    if (viewportRef.current && typeof settings.location === 'number') {
+      const pageToScroll = settings.location;
+      setTimeout(() => {
+        const pageEl = viewportRef.current?.querySelector(`[data-page-number="${pageToScroll}"]`);
+        if (pageEl) {
+          pageEl.scrollIntoView();
+        }
+      }, 700); // Un poco más de delay para asegurar que las páginas están en el DOM
+    }
   };
 
   const handleTextSelection = useCallback((pageNumber: number) => {

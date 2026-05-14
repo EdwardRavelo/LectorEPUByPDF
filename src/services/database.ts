@@ -21,6 +21,7 @@ export interface BookSettings {
   fontFamily: string;
   theme: 'light' | 'dark';
   viewMode: 'single' | 'double';
+  location?: string | number; // CFI for ePub, Page number for PDF
 }
 
 const DB_NAME = 'LibrisDB';

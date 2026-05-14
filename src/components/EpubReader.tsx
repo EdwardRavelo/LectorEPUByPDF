@@ -80,12 +80,17 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
         await book.opened;
         if (!isMounted) return;
 
-        await rendition.display();
+        await rendition.display(settings.location?.toString());
         if (isMounted) {
           setLoadingState('success');
           applyAllStyles(rendition, settings.fontSize, settings.fontFamily, settings.theme);
           applyAnnotations(rendition);
         }
+
+        // Guardar progreso al cambiar de ubicación
+        rendition.on('relocated', (location: any) => {
+          updateSettings({ location: location.start.cfi });
+        });
       } catch (err: any) {
         if (isMounted) setLoadingState('error');
       }
