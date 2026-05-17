@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { PdfReader } from './components/PdfReader'
 import { EpubReader } from './components/EpubReader'
 import { ReaderProvider, useReader } from './context/ReaderContext'
-import { dbService, BookRecord } from './services/database'
+import { dbService, type BookRecord } from './services/database'
 import './App.css'
 
 interface BookFile {
