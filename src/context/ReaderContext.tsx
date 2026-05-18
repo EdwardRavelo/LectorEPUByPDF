@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { dbService } from '../services/database';
 import type { BookSettings, Annotation } from '../services/database';
 
+type ThemeType = 'light' | 'dark' | 'sepia';
+
 interface ReaderContextType {
   settings: BookSettings;
   updateSettings: (newSettings: Partial<BookSettings>) => void;
@@ -12,6 +14,8 @@ interface ReaderContextType {
   isLoading: boolean;
   activeBookId: string | null;
   setActiveBookId: (id: string | null) => void;
+  theme: ThemeType;
+  setTheme: (theme: ThemeType) => void;
 }
 
 const defaultSettings: BookSettings = {
@@ -29,6 +33,21 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<BookSettings>(defaultSettings);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Persistencia global del tema en localStorage
+  const [theme, setThemeState] = useState<ThemeType>(() => {
+    const saved = localStorage.getItem('libris-theme');
+    return (saved as ThemeType) || 'light';
+  });
+
+  const setTheme = useCallback((newTheme: ThemeType) => {
+    setThemeState(newTheme);
+    localStorage.setItem('libris-theme', newTheme);
+    // También actualizamos el setting del libro actual si existe
+    if (activeBookId) {
+      updateSettings({ theme: newTheme });
+    }
+  }, [activeBookId]);
 
   // Load data when active book changes
   useEffect(() => {
@@ -48,8 +67,13 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
 
         if (savedSettings) {
           setSettings(savedSettings);
+          // Si el libro tiene un tema guardado, lo usamos
+          if (savedSettings.theme) {
+            setThemeState(savedSettings.theme);
+            localStorage.setItem('libris-theme', savedSettings.theme);
+          }
         } else {
-          setSettings({ ...defaultSettings, bookId: activeBookId });
+          setSettings({ ...defaultSettings, bookId: activeBookId, theme });
         }
         setAnnotations(savedAnnotations);
       } catch (error) {
@@ -66,10 +90,17 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     if (!activeBookId) return;
     setSettings(prev => {
       const updated = { ...prev, ...newSettings, bookId: activeBookId };
-      // Persistir en segundo plano
+      // Evitar side effects dentro del updater, pero por ahora mantenemos la lógica 
+      // para asegurar persistencia inmediata. 
       dbService.saveSettings(updated);
       return updated;
     });
+    
+    // Sincronizar tema global si cambió en los settings
+    if (newSettings.theme) {
+      setThemeState(newSettings.theme);
+      localStorage.setItem('libris-theme', newSettings.theme);
+    }
   }, [activeBookId]);
 
   const addAnnotation = useCallback(async (anno: Omit<Annotation, 'timestamp' | 'id'>) => {
@@ -107,7 +138,9 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
       deleteAnnotation,
       isLoading,
       activeBookId,
-      setActiveBookId
+      setActiveBookId,
+      theme,
+      setTheme
     }}>
       {children}
     </ReaderContext.Provider>

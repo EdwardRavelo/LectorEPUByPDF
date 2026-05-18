@@ -27,7 +27,7 @@ interface ReaderLayoutProps {
 export function ReaderLayout({
   children, onRemove, onPrev, onNext, onScrollToTop, onScrollToBottom, type, progress
 }: ReaderLayoutProps) {
-  const { settings, updateSettings, isLoading } = useReader();
+  const { settings, updateSettings, isLoading, theme, setTheme } = useReader();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -59,17 +59,17 @@ export function ReaderLayout({
 
   const cycleTheme = () => {
     const themes: ('light' | 'sepia' | 'dark')[] = ['light', 'sepia', 'dark'];
-    const next = (themes.indexOf(settings.theme) + 1) % themes.length;
-    updateSettings({ theme: themes[next] });
+    const next = (themes.indexOf(theme) + 1) % themes.length;
+    setTheme(themes[next]);
   };
 
   const ThemeIcon = () => {
-    if (settings.theme === 'light') return <Sun size={18} />;
-    if (settings.theme === 'sepia') return <Sunset size={18} />;
+    if (theme === 'light') return <Sun size={18} />;
+    if (theme === 'sepia') return <Sunset size={18} />;
     return <Moon size={18} />;
   };
 
-  const themeLabel = settings.theme === 'light' ? 'Claro' : settings.theme === 'sepia' ? 'Sepia' : 'Oscuro';
+  const themeLabel = theme === 'light' ? 'Claro' : theme === 'sepia' ? 'Sepia' : 'Oscuro';
 
   const progressRatio = progress ? Math.min(progress.current / progress.total, 1) : 0;
   const progressLabel = progress
@@ -81,11 +81,11 @@ export function ReaderLayout({
   return (
     <div
       ref={containerRef}
-      className={`main-view ${isFullscreen ? 'fullscreen' : ''} ${settings.theme}`}
+      className={`main-view ${isFullscreen ? 'fullscreen' : ''} ${theme}`}
       style={{
         background:
-          settings.theme === 'dark' ? '#111318'
-          : settings.theme === 'sepia' ? '#f0e8d4'
+          theme === 'dark' ? '#111318'
+          : theme === 'sepia' ? '#f0e8d4'
           : '#eeeef2'
       }}
     >

@@ -45,7 +45,7 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
   const renditionRef = useRef<Rendition | null>(null);
   const bookRef      = useRef<ReturnType<typeof ePub> | null>(null);
 
-  const { settings, annotations, addAnnotation, updateAnnotation, updateSettings } = useReader();
+  const { settings, annotations, addAnnotation, updateAnnotation, updateSettings, theme } = useReader();
 
   const [loadingState, setLoadingState] = useState<'loading' | 'success' | 'error'>('loading');
   const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | null>(null);
@@ -132,12 +132,12 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
         if (!isMounted) return;
 
         setLoadingState('success');
-        applyAllStyles(rendition, settings.fontSize, settings.fontFamily, settings.theme);
+        applyAllStyles(rendition, settings.fontSize, settings.fontFamily, theme);
         applyAnnotations(rendition);
 
         rendition.on('rendered', () => {
           if (renditionRef.current) {
-            applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, settings.theme);
+            applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, theme);
           }
         });
 
@@ -167,9 +167,9 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
   // Reactively apply font/theme changes without re-initializing
   useEffect(() => {
     if (renditionRef.current && loadingState === 'success') {
-      applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, settings.theme);
+      applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, theme);
     }
-  }, [settings.fontSize, settings.fontFamily, settings.theme, loadingState]);
+  }, [settings.fontSize, settings.fontFamily, theme, loadingState]);
 
   // Reactively apply annotations without re-initializing
   useEffect(() => {
@@ -210,7 +210,7 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
     >
       <div
         className="epub-container"
-        style={{ background: settings.theme === 'dark' ? '#1a1b23' : settings.theme === 'sepia' ? '#fcf5e5' : '#fff' }}
+        style={{ background: theme === 'dark' ? '#1a1b23' : theme === 'sepia' ? '#fcf5e5' : '#fff' }}
       >
         {loadingState === 'loading' && (
           <div className="loading-overlay">
