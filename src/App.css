@@ -737,7 +737,7 @@ body {
   align-items: center;
   scrollbar-width: thin;
   scrollbar-color: rgba(170, 59, 255, 0.25) transparent;
-  padding: 2rem 1.5rem;
+  padding: 4.5rem 1.5rem 2rem;
 }
 
 .reader-viewport::-webkit-scrollbar { width: 4px; }
@@ -805,6 +805,7 @@ body {
   margin: 0 auto;
   position: relative;
   overflow: hidden;
+  padding-top: 3.5rem;
 }
 
 /* ─── PDF Annotation Toolbar ──────────────────────────────── */

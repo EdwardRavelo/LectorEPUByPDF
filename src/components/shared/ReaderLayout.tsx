@@ -75,7 +75,7 @@ export function ReaderLayout({
   const progressLabel = progress
     ? progress.unit === 'percent'
       ? `${progress.current}%`
-      : `${progress.current} / ${progress.total}`
+      : `${progress.current} / ${progress.total}${progress.total - progress.current > 0 ? ` (restan ${progress.total - progress.current})` : ''}`
     : null;
 
   return (
