@@ -558,7 +558,7 @@ body {
   position: absolute;
   top: 1.5rem;
   right: 1.5rem;
-  z-index: 100;
+  z-index: 300;
 }
 
 .tool-group {
@@ -576,7 +576,7 @@ body {
   gap: 0.35rem;
   padding: 0.55rem 0.9rem;
   border-radius: 99px;
-  z-index: 100;
+  z-index: 300;
 }
 
 .floating-btn {
@@ -640,7 +640,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  z-index: 110;
+  z-index: 310;
 }
 
 .option-row {
@@ -737,7 +737,7 @@ body {
   align-items: center;
   scrollbar-width: thin;
   scrollbar-color: rgba(170, 59, 255, 0.25) transparent;
-  padding: 4.5rem 1.5rem 2rem;
+  padding: 4.5rem 1.5rem 6rem;
 }
 
 .reader-viewport::-webkit-scrollbar { width: 4px; }
@@ -750,6 +750,7 @@ body {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
+  padding-bottom: 2rem;
 }
 
 .pdf-page-wrapper {
@@ -806,6 +807,7 @@ body {
   position: relative;
   overflow: hidden;
   padding-top: 3.5rem;
+  padding-bottom: 5.5rem;
 }
 
 /* ─── PDF Annotation Toolbar ──────────────────────────────── */

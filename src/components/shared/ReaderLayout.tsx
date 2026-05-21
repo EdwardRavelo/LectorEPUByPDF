@@ -30,6 +30,8 @@ export function ReaderLayout({
   const { settings, updateSettings, isLoading, theme, setTheme } = useReader();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  const [showToolbars, setShowToolbars] = useState(true);
+  const toolbarTimerRef = React.useRef<number | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,6 +39,26 @@ export function ReaderLayout({
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
+
+  // Auto-hide toolbars
+  useEffect(() => {
+    const handleMouseMove = () => {
+      setShowToolbars(true);
+      if (toolbarTimerRef.current) window.clearTimeout(toolbarTimerRef.current);
+      
+      toolbarTimerRef.current = window.setTimeout(() => {
+        if (!showOptions) setShowToolbars(false);
+      }, 3000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    handleMouseMove(); // Initial timer
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (toolbarTimerRef.current) window.clearTimeout(toolbarTimerRef.current);
+    };
+  }, [showOptions]);
 
   // Close options panel on outside click
   useEffect(() => {
@@ -90,90 +112,106 @@ export function ReaderLayout({
       }}
     >
       {/* Reading progress bar */}
-      {progress && progress.total > 0 && (
-        <div className="reading-progress-bar">
-          <div
-            className="reading-progress-fill"
-            style={{ width: `${progressRatio * 100}%` }}
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {showToolbars && progress && progress.total > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="reading-progress-bar"
+          >
+            <div
+              className="reading-progress-fill"
+              style={{ width: `${progressRatio * 100}%` }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Top-right options panel */}
-      <div className="tools-panel">
-        <div className="tool-group glass-panel">
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button
-              className="floating-btn"
-              onClick={cycleTheme}
-              title={`Tema: ${themeLabel} → siguiente`}
-            >
-              <ThemeIcon />
-            </button>
-            <button
-              className="floating-btn"
-              data-options-btn
-              onClick={() => setShowOptions(v => !v)}
-              title="Opciones de texto"
-            >
-              <Type size={18} />
-            </button>
-            <button
-              className={`floating-btn ${settings.viewMode === 'double' ? 'active' : ''}`}
-              onClick={() => updateSettings({ viewMode: settings.viewMode === 'single' ? 'double' : 'single' })}
-              title={settings.viewMode === 'single' ? 'Vista doble página' : 'Vista página única'}
-              style={{ fontSize: '0.78rem', fontWeight: 700 }}
-            >
-              {settings.viewMode === 'single' ? '1' : '2'}
-            </button>
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {showOptions && (
-            <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="text-options-popup glass-panel"
-            >
-              <div className="option-row">
-                <small>Tamaño del texto</small>
-                <div className="btn-group">
-                  <button
-                    onClick={() => updateSettings({ fontSize: Math.max(settings.fontSize - 10, 50) })}
-                    title="Reducir"
-                  >
-                    <ZoomOut size={15} />
-                  </button>
-                  <span>{settings.fontSize}%</span>
-                  <button
-                    onClick={() => updateSettings({ fontSize: Math.min(settings.fontSize + 10, 300) })}
-                    title="Aumentar"
-                  >
-                    <ZoomIn size={15} />
-                  </button>
-                </div>
+      <AnimatePresence>
+        {showToolbars && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="tools-panel"
+          >
+            <div className="tool-group glass-panel">
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  className="floating-btn"
+                  onClick={cycleTheme}
+                  title={`Tema: ${themeLabel} → siguiente`}
+                >
+                  <ThemeIcon />
+                </button>
+                <button
+                  className="floating-btn"
+                  data-options-btn
+                  onClick={() => setShowOptions(v => !v)}
+                  title="Opciones de texto"
+                >
+                  <Type size={18} />
+                </button>
+                <button
+                  className={`floating-btn ${settings.viewMode === 'double' ? 'active' : ''}`}
+                  onClick={() => updateSettings({ viewMode: settings.viewMode === 'single' ? 'double' : 'single' })}
+                  title={settings.viewMode === 'single' ? 'Vista doble página' : 'Vista página única'}
+                  style={{ fontSize: '0.78rem', fontWeight: 700 }}
+                >
+                  {settings.viewMode === 'single' ? '1' : '2'}
+                </button>
               </div>
+            </div>
 
-              {type === 'epub' && (
-                <div className="option-row">
-                  <small>Tipografía</small>
-                  <select
-                    value={settings.fontFamily}
-                    onChange={e => updateSettings({ fontFamily: e.target.value })}
-                  >
-                    <option value="'Inter', sans-serif">Sans moderna</option>
-                    <option value="'Georgia', serif">Serif clásica</option>
-                    <option value="'Courier New', monospace">Monoespacio</option>
-                  </select>
-                </div>
+            <AnimatePresence>
+              {showOptions && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-options-popup glass-panel"
+                >
+                  <div className="option-row">
+                    <small>Tamaño del texto</small>
+                    <div className="btn-group">
+                      <button
+                        onClick={() => updateSettings({ fontSize: Math.max(settings.fontSize - 10, 50) })}
+                        title="Reducir"
+                      >
+                        <ZoomOut size={15} />
+                      </button>
+                      <span>{settings.fontSize}%</span>
+                      <button
+                        onClick={() => updateSettings({ fontSize: Math.min(settings.fontSize + 10, 300) })}
+                        title="Aumentar"
+                      >
+                        <ZoomIn size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {type === 'epub' && (
+                    <div className="option-row">
+                      <small>Tipografía</small>
+                      <select
+                        value={settings.fontFamily}
+                        onChange={e => updateSettings({ fontFamily: e.target.value })}
+                      >
+                        <option value="'Inter', sans-serif">Sans moderna</option>
+                        <option value="'Georgia', serif">Serif clásica</option>
+                        <option value="'Courier New', monospace">Monoespacio</option>
+                      </select>
+                    </div>
+                  )}
+                </motion.div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main content area */}
       <div className="reader-content">
@@ -186,47 +224,52 @@ export function ReaderLayout({
       </div>
 
       {/* Floating bottom toolbar */}
-      <motion.div
-        className="floating-toolbar glass-panel"
-        initial={{ y: 80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 260, damping: 24 }}
-      >
-        {type === 'epub' ? (
-          <>
-            <button className="floating-btn" onClick={onPrev} title="Página anterior (←)">
-              <ChevronLeft size={22} />
-            </button>
-            <button className="floating-btn" onClick={onNext} title="Página siguiente (→)">
-              <ChevronRight size={22} />
-            </button>
-          </>
-        ) : (
-          <>
-            <button className="floating-btn" onClick={onScrollToTop} title="Ir al inicio">
-              <ChevronUp size={22} />
-            </button>
-            <button className="floating-btn" onClick={onScrollToBottom} title="Ir al final">
-              <ChevronDown size={22} />
-            </button>
-          </>
-        )}
+      <AnimatePresence>
+        {showToolbars && (
+          <motion.div
+            className="floating-toolbar glass-panel"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+          >
+            {type === 'epub' ? (
+              <>
+                <button className="floating-btn" onClick={onPrev} title="Página anterior (←)">
+                  <ChevronLeft size={22} />
+                </button>
+                <button className="floating-btn" onClick={onNext} title="Página siguiente (→)">
+                  <ChevronRight size={22} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="floating-btn" onClick={onScrollToTop} title="Ir al inicio">
+                  <ChevronUp size={22} />
+                </button>
+                <button className="floating-btn" onClick={onScrollToBottom} title="Ir al final">
+                  <ChevronDown size={22} />
+                </button>
+              </>
+            )}
 
-        {progressLabel && (
-          <>
+            {progressLabel && (
+              <>
+                <div className="toolbar-divider" />
+                <span className="page-indicator">{progressLabel}</span>
+              </>
+            )}
+
             <div className="toolbar-divider" />
-            <span className="page-indicator">{progressLabel}</span>
-          </>
+            <button className="floating-btn" onClick={toggleFullscreen} title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
+              {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+            </button>
+            <button className="floating-btn danger" onClick={onRemove} title="Cerrar libro">
+              <Trash2 size={20} />
+            </button>
+          </motion.div>
         )}
-
-        <div className="toolbar-divider" />
-        <button className="floating-btn" onClick={toggleFullscreen} title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
-          {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-        </button>
-        <button className="floating-btn danger" onClick={onRemove} title="Cerrar libro">
-          <Trash2 size={20} />
-        </button>
-      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

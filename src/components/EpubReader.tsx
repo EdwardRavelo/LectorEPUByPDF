@@ -43,7 +43,7 @@ function applyAllStyles(
 export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
   const viewerRef   = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<Rendition | null>(null);
-  const bookRef      = useRef<ReturnType<typeof ePub> | null>(null);
+  const bookRef      = useRef<any>(null);
 
   const { settings, annotations, addAnnotation, updateAnnotation, updateSettings, theme } = useReader();
 
@@ -51,7 +51,7 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
   const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | null>(null);
   const [commentText, setCommentText] = useState('');
   const [activeColor, setActiveColor] = useState(HIGHLIGHT_COLORS[0]);
-  const [epubProgress, setEpubProgress] = useState<number | null>(null);
+  const [epubProgress, setEpubProgress] = useState<{current: number, total: number, isPercent?: boolean} | null>(null);
 
   // Ref to always hold the latest activeColor without triggering re-init
   const activeColorRef = useRef(activeColor);
@@ -92,7 +92,7 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
       try {
         setLoadingState('loading');
         if (bookRef.current) {
-          try { await (bookRef.current as any).destroy(); } catch (_) {}
+          try { await bookRef.current.destroy(); } catch (_) {}
         }
 
         const response = await fetch(url);
@@ -125,8 +125,39 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
           });
         });
 
+        rendition.on('relocated', (location: any) => {
+          updateSettings({ location: location.start.cfi });
+          if (book.locations.length() > 0) {
+            const current = book.locations.locationFromCfi(location.start.cfi) as any;
+            setEpubProgress({
+              current: current || 0,
+              total: book.locations.length()
+            });
+          } else if (typeof location.start.percentage === 'number') {
+            setEpubProgress({
+              current: Math.round(location.start.percentage * 100),
+              total: 100,
+              isPercent: true
+            });
+          }
+        });
+
         await book.opened;
         if (!isMounted) return;
+
+        // Generate locations for better page numbering
+        book.locations.generate(1024).then(() => {
+          if (isMounted && renditionRef.current) {
+            const currentLocation = renditionRef.current.location;
+            if (currentLocation) {
+              const current = book.locations.locationFromCfi(currentLocation.start.cfi) as any;
+              setEpubProgress({
+                current: current || 0,
+                total: book.locations.length()
+              });
+            }
+          }
+        });
 
         await rendition.display(settings.location?.toString());
         if (!isMounted) return;
@@ -141,13 +172,6 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
           }
         });
 
-        rendition.on('relocated', (location: any) => {
-          updateSettings({ location: location.start.cfi });
-          if (typeof location.start.percentage === 'number') {
-            setEpubProgress(Math.round(location.start.percentage * 100));
-          }
-        });
-
       } catch (err) {
         if (isMounted) setLoadingState('error');
         console.error('EpubReader init error:', err);
@@ -159,24 +183,10 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
     return () => {
       isMounted = false;
       if (bookRef.current) {
-        try { (bookRef.current as any).destroy(); } catch (_) {}
+        try { bookRef.current.destroy(); } catch (_) {}
       }
     };
-  }, [url, settings.viewMode, id]); // intentionally excludes settings/annotations to avoid re-init
-
-  // Reactively apply font/theme changes without re-initializing
-  useEffect(() => {
-    if (renditionRef.current && loadingState === 'success') {
-      applyAllStyles(renditionRef.current, settings.fontSize, settings.fontFamily, theme);
-    }
-  }, [settings.fontSize, settings.fontFamily, theme, loadingState]);
-
-  // Reactively apply annotations without re-initializing
-  useEffect(() => {
-    if (renditionRef.current && loadingState === 'success') {
-      applyAnnotations(renditionRef.current);
-    }
-  }, [annotations, loadingState, applyAnnotations]);
+  }, [url, settings.viewMode, id, theme, settings.fontSize, settings.fontFamily, applyAnnotations, updateSettings]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -196,8 +206,12 @@ export function EpubReader({ id, url, onRemove }: EpubReaderProps) {
     setSelectedAnnotation(null);
   };
 
-  const progress = epubProgress !== null
-    ? { current: epubProgress, total: 100, unit: 'percent' as const }
+  const progress = epubProgress
+    ? { 
+        current: epubProgress.current, 
+        total: epubProgress.total, 
+        unit: (epubProgress.isPercent ? 'percent' : 'page') as 'percent' | 'page' 
+      }
     : undefined;
 
   return (
